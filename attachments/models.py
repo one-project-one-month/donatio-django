@@ -4,7 +4,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 from core.models import BaseModel
 
-
 class Attachment(BaseModel):
     # ContentType is a model that allows you to link to any model
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -22,3 +21,6 @@ class Attachment(BaseModel):
         verbose_name = "Attachment"
         verbose_name_plural = "Attachments"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
