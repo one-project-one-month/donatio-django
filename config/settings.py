@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     
     # My Apps
     'accounts.apps.AccountsConfig',
-    'attachments'
+    'attachments',
+    'organizations',
 ]
 
 SITE_ID = 1
