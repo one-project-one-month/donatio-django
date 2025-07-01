@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'attachments',
     'organizations',
     "chat",
+    "transactions",
+    "events",
 ]
 
 ASGI_APPLICATION = "config.asgi.application"
