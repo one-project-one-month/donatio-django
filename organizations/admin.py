@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import OrganizationRequest, Organization
 
-# Register your models here.
+admin.site.register(OrganizationRequest)
+admin.site.register(Organization)

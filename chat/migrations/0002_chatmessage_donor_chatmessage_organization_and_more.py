@@ -6,27 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('chat', '0001_initial'),
-        ('organizations', '0001_initial'),
+        ("chat", "0001_initial"),
+        ("organizations", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='chatmessage',
-            name='donor',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='donor_messages', to=settings.AUTH_USER_MODEL),
+            model_name="chatmessage",
+            name="donor",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="donor_messages",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='chatmessage',
-            name='organization',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organization_messages', to='organizations.organization'),
+            model_name="chatmessage",
+            name="organization",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organization_messages",
+                to="organizations.organization",
+            ),
         ),
         migrations.AlterField(
-            model_name='chatmessage',
-            name='sender',
-            field=models.CharField(choices=[('donor', 'Donor'), ('organization', 'Organization')], max_length=20),
+            model_name="chatmessage",
+            name="sender",
+            field=models.CharField(
+                choices=[("donor", "Donor"), ("organization", "Organization")],
+                max_length=20,
+            ),
         ),
     ]

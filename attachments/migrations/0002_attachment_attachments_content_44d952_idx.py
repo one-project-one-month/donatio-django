@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('attachments', '0001_initial'),
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("attachments", "0001_initial"),
+        ("contenttypes", "0002_remove_content_type_name"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='attachment',
-            index=models.Index(fields=['content_type', 'object_id'], name='attachments_content_44d952_idx'),
+            model_name="attachment",
+            index=models.Index(
+                fields=["content_type", "object_id"],
+                name="attachments_content_44d952_idx",
+            ),
         ),
     ]

@@ -38,27 +38,22 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    
     # Third Party Apps
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
-    
     "dj_rest_auth",
     "dj_rest_auth.registration",
-    
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
-    
     "django_filters",
-    'django_cleanup.apps.CleanupConfig',
-    
+    "django_cleanup.apps.CleanupConfig",
     # My Apps
-    'accounts.apps.AccountsConfig',
-    'attachments',
-    'organizations',
+    "accounts.apps.AccountsConfig",
+    "attachments",
+    "organizations",
     "chat",
     "transactions",
     "events",
@@ -72,7 +67,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -165,69 +160,69 @@ ACCOUNT_ADAPTER = "accounts.adapters.CustomAccountAdapter"
 
 # Cors
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True # for dev only
+CORS_ALLOW_ALL_ORIGINS = True  # for dev only
 
 # Email Related
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'khantthitoo.dev@gmail.com'
-EMAIL_HOST_PASSWORD = env('GOOGLE_APP_PASSWORD')
+EMAIL_HOST_USER = "khantthitoo.dev@gmail.com"
+EMAIL_HOST_PASSWORD = env("GOOGLE_APP_PASSWORD")
 DEFAULT_FROM_EMAIL = "Donatio <khantthitoo.dev@gmail.com>"
 
-ACCOUNT_EMAIL_VERIFICATION = "mandatory" # Email Varification Is Required
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Email Varification Is Required
 ACCOUNT_EMAIL_REQUIRED = True
 
-REST_USE_JWT = True # I don't think this one neccessary but just put it
+REST_USE_JWT = True  # I don't think this one neccessary but just put it
 
 REST_AUTH = {
-    'USE_JWT': True,
-    'JWT_AUTH_HTTPONLY': False # by default it doesn't show refresh token for security reasons so you need to do this
+    "USE_JWT": True,
+    "JWT_AUTH_HTTPONLY": False,  # by default it doesn't show refresh token for security reasons so you need to do this
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("JWT",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
 REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'accounts.serializers.CustomUserDetailsSerializer',
+    "USER_DETAILS_SERIALIZER": "accounts.serializers.CustomUserDetailsSerializer",
 }
 
 # OAuth Providers
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': env('GOOGLE_CLIENT_ID'),
-            'secret': 'fake', # client secret not needed for the current flow
-            'key': ''
+    "google": {
+        "APP": {
+            "client_id": env("GOOGLE_CLIENT_ID"),
+            "secret": "fake",  # client secret not needed for the current flow
+            "key": "",
         },
-        'SCOPE': [
-            'profile',
-            'email',
+        "SCOPE": [
+            "profile",
+            "email",
         ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
     }
 }
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
