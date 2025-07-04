@@ -73,14 +73,6 @@ class OrganizationRequestSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
     admin = UserSerializer(read_only=True)
-    admin_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), source="admin", write_only=True, required=False
-    )
-
-    organization_request = OrganizationRequestSerializer(read_only=True)
-    organization_request_id = serializers.PrimaryKeyRelatedField(
-        queryset=OrganizationRequest.objects.all(), source="organization_request"
-    )
     attachments = serializers.SerializerMethodField(read_only=True)
 
     def get_attachments(self, obj):
@@ -91,21 +83,39 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "admin",
-            "admin_id",
             "name",
             "description",
             "phone_number",
             "email",
             "additional_info",
-            "organization_request",
-            "organization_request_id",
             "created_at",
             "updated_at",
             "attachments",
         ]
-        read_only_fields = ["created_at", "updated_at"]
-
-    def create(self, validated_data):
-        if "admin" not in validated_data and self.context["request"].user.is_staff:
-            validated_data["admin"] = self.context["request"].user
-        return super().create(validated_data)
+        read_only_fields = [
+            "created_at", 
+            "updated_at"
+        ]
+        
+    def validate_phone_number(self, value):
+        
+        if not value:
+            return value
+        
+        if not value.isdigit():
+            raise serializers.ValidationError("Phone number must be digits")
+        
+        if value.startswith("09"):
+            raise serializers.ValidationError("Phone number must not start with 09")
+        
+        if value.startswith("0"):
+            raise serializers.ValidationError("Phone number must not start with 0")
+        
+        if len(value) < 8 or len(value) > 10:
+            raise serializers.ValidationError("Phone number must be 8-10 digits")
+        
+        return value
+    
+    def validate_email(self, value):
+        if not value:
+            return value
