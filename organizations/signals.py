@@ -22,6 +22,7 @@ def create_organization(sender, instance, created, **kwargs):
             organization_request=instance,
             admin=instance.submitted_by,
             name=instance.organization_name,
+            type=instance.type,
         )
         print("Organization created")
     else:

@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 class CreateOrganizationRequestSerializer(serializers.ModelSerializer):
-    attachments = serializers.ListField(
+    uploaded_attachments = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
         required=True,
@@ -22,10 +22,10 @@ class CreateOrganizationRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrganizationRequest
-        fields = ["organization_name", "attachments"]
+        fields = ["organization_name", "uploaded_attachments"]
 
     def create(self, validated_data):
-        attachments_data = validated_data.pop("attachments", [])
+        attachments_data = validated_data.pop("uploaded_attachments", [])
         with transaction.atomic():
             organization_request = OrganizationRequest.objects.create(**validated_data)
 
@@ -74,6 +74,12 @@ class OrganizationRequestSerializer(serializers.ModelSerializer):
 class OrganizationSerializer(serializers.ModelSerializer):
     admin = UserSerializer(read_only=True)
     attachments = serializers.SerializerMethodField(read_only=True)
+    uploaded_attachments = serializers.ListField(
+        child=serializers.FileField(allow_empty_file=True),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
 
     def get_attachments(self, obj):
         return SimpleAttachmentSerializer(obj.attachments.all(), many=True).data
@@ -84,6 +90,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "id",
             "admin",
             "name",
+            "type",
+            "kpay_qr_url",
             "description",
             "phone_number",
             "email",
@@ -91,16 +99,45 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "attachments",
+            "uploaded_attachments",
         ]
         read_only_fields = [
+            "name",
+            "type",
             "created_at", 
             "updated_at"
         ]
         
+    def update(self, instance, validated_data):
+        attachments_data = validated_data.pop("uploaded_attachments", [])
+
+        with transaction.atomic():
+            
+            #Update all other fields on the instance
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            
+            # If there are new attachments, delete old ones and create new ones
+            if attachments_data:
+                # Delete old attachments
+                instance.attachments.all().delete()
+                #Get the first attachment and link it to the organization
+                instance.attachments.create(file=attachments_data[0])
+            
+            instance.save()
+ 
+        return instance
+        
+    def validate_kpay_qr_url(self, value):
+        if not value:
+            raise serializers.ValidationError("Kpay QR URL is required")
+        
+        return value
+        
     def validate_phone_number(self, value):
         
         if not value:
-            return value
+            raise serializers.ValidationError("Phone number is required")
         
         if not value.isdigit():
             raise serializers.ValidationError("Phone number must be digits")
@@ -115,7 +152,3 @@ class OrganizationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number must be 8-10 digits")
         
         return value
-    
-    def validate_email(self, value):
-        if not value:
-            return value

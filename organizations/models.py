@@ -13,6 +13,7 @@ class OrganizationRequest(BaseModel, AttachableModel):
         related_name="organization_requests",
     )
     organization_name = models.CharField(max_length=255)
+    type = models.CharField(max_length=50)
     status = models.CharField(
         max_length=20,
         choices=OrganizationRequestStatus.choices,
@@ -31,6 +32,11 @@ class OrganizationRequest(BaseModel, AttachableModel):
 
     def __str__(self):
         return f"{self.organization_name} - {self.submitted_by}"
+    
+    def save(self, *args, **kwargs):
+        self.type = self.type.lower()
+        self.organization_name = self.organization_name.lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Organization Request"
@@ -45,6 +51,8 @@ class Organization(BaseModel, AttachableModel):
         related_name="organization_admin",
     )
     name = models.CharField(max_length=255)
+    type = models.CharField(max_length=50)
+    kpay_qr_url = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -56,6 +64,12 @@ class Organization(BaseModel, AttachableModel):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.type = self.type.lower()
+        self.name = self.name.lower()
+        self.email = self.email.lower() if self.email else None
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Organization"
