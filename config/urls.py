@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/auth/google", GoogleLogin.as_view()),
     path("api/auth/", include("accounts.urls")),
     path("api/", include("organizations.urls")),
+    path('api/', include('activity.urls')),
     path("api-token-auth/", obtain_auth_token),
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include("chat.urls")),

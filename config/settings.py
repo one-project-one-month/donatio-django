@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    
     # Third Party Apps
     "corsheaders",
     "rest_framework",
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "django_filters",
     "django_cleanup.apps.CleanupConfig",
+
     # My Apps
     "accounts.apps.AccountsConfig",
     "attachments",
@@ -57,6 +59,7 @@ INSTALLED_APPS = [
     "chat",
     "transactions",
     "events",
+    "activity", 
 ]
 
 ASGI_APPLICATION = "config.asgi.application"
