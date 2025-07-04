@@ -13,16 +13,19 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email"]
 
+
 class CreateOrganizationRequestSerializer(serializers.ModelSerializer):
     uploaded_attachments = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
         required=True,
     )
+    attachments = SimpleAttachmentSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = OrganizationRequest
-        fields = ["organization_name", "uploaded_attachments"]
+        fields = ["id", "organization_name", "type", "uploaded_attachments", "attachments"]
 
     def create(self, validated_data):
         attachments_data = validated_data.pop("uploaded_attachments", [])
@@ -38,9 +41,12 @@ class CreateOrganizationRequestSerializer(serializers.ModelSerializer):
 
 
 class UpdateOrganizationRequestSerializer(serializers.ModelSerializer):
+    attachments = SimpleAttachmentSerializer(many=True, read_only=True)
+    
     class Meta:
         model = OrganizationRequest
-        fields = ["status"]
+        fields = ["id", "organization_name", "type", "attachments", "status"]
+        read_only_fields = ["id", "organization_name", "type", "attachments"]
 
     def validate_status(self, value):
         if self.instance.status == OrganizationRequestStatus.APPROVED:
