@@ -13,9 +13,11 @@ from .serializers import (
     UpdateOrganizationRequestSerializer,
 )
 from .permissions import IsAdminOrOrgAdmin, IsOrgAdmin
-from .constants import OrganizationRequestStatus
 from rest_framework.parsers import MultiPartParser, FormParser
 from attachments.models import Attachment
+from django.shortcuts import get_object_or_404
+from chat.models import Chat
+from chat.serializers import ChatSerializer
 
 
 class OrganizationRequestViewSet(viewsets.ModelViewSet):
