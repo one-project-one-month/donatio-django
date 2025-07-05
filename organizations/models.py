@@ -32,7 +32,7 @@ class OrganizationRequest(BaseModel, AttachableModel):
 
     def __str__(self):
         return f"{self.organization_name} - {self.submitted_by}"
-    
+
     def save(self, *args, **kwargs):
         self.type = self.type.lower()
         self.organization_name = self.organization_name.lower()

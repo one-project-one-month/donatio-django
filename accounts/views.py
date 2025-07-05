@@ -12,6 +12,7 @@ from attachments.models import Attachment
 from .serializers import CustomUserDetailsSerializer
 from django.shortcuts import get_object_or_404
 
+
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     client_class = OAuth2Client
@@ -60,7 +61,7 @@ class UserViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
-                    attachment = Attachment.objects.create(
+                    Attachment.objects.create(
                         content_object=profile, file=profile_picture
                     )
                 except ValueError as e:

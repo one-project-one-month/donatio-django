@@ -4,27 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('organizations', '0001_initial'),
+        ("organizations", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='organization',
-            name='kpay_qr_url',
+            model_name="organization",
+            name="kpay_qr_url",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='type',
-            field=models.CharField(default='test', max_length=50),
+            model_name="organization",
+            name="type",
+            field=models.CharField(default="test", max_length=50),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='organizationrequest',
-            name='type',
-            field=models.CharField(default='test', max_length=50),
+            model_name="organizationrequest",
+            name="type",
+            field=models.CharField(default="test", max_length=50),
             preserve_default=False,
         ),
     ]

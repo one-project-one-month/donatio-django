@@ -2,7 +2,11 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Chat, ChatMessage
-from .serializers import ChatSerializer, ChatMessageSerializer, UpdateChatMessageSerializer
+from .serializers import (
+    ChatSerializer,
+    ChatMessageSerializer,
+    UpdateChatMessageSerializer,
+)
 from .permissions import IsChatOwner, IsMessageOwner
 
 
@@ -35,7 +39,7 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     serializer_class = ChatMessageSerializer
     permission_classes = [permissions.IsAuthenticated, IsMessageOwner]
     http_method_names = ["put", "delete"]
-    
+
     def get_serializer_class(self):
         if self.action == "update":
             return UpdateChatMessageSerializer
