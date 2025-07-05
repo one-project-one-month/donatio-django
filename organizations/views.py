@@ -54,7 +54,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     permission_classes = [IsAuthenticated, IsAdminOrOrgAdmin]
     # pagination_class = CommonPagination
-    http_method_names = ['get', 'put', 'patch', 'delete']
+    http_method_names = ["get", "put", "patch", "delete"]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -75,35 +75,34 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return super().perform_update(serializer)
 
+
 class OrganizationChatViewSet(viewsets.ModelViewSet):
     serializer_class = ChatSerializer
     permission_classes = [IsAuthenticated, IsOrgAdmin]
-    http_method_names = ['get', 'post']
-    
+    http_method_names = ["get", "post"]
+
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action == "create":
             return [IsAuthenticated()]
         return super().get_serializer_class()
 
     def get_queryset(self):
-        if self.action == 'list':
+        if self.action == "list":
             return Chat.objects.filter(organization=self.kwargs.get("organization_pk"))
         return Chat.objects.all()
-    
+
     def create(self, request, *args, **kwargs):
-        organization = get_object_or_404(Organization, id=self.kwargs.get('organization_pk'))
-        
+        organization = get_object_or_404(
+            Organization, id=self.kwargs.get("organization_pk")
+        )
+
         # get or start new chat
         chat, created = Chat.objects.get_or_create(
             donor=request.user,
             organization=organization,
-            defaults={
-                'created_at': timezone.now()
-            }
+            defaults={"created_at": timezone.now()},
         )
-        
-        return Response({ 
-            "created": created,
-            "chat_id": chat.id
-        }, status=status.HTTP_200_OK)
-      
+
+        return Response(
+            {"created": created, "chat_id": chat.id}, status=status.HTTP_200_OK
+        )

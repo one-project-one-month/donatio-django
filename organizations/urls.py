@@ -1,6 +1,10 @@
 from django.urls import path, include
 from rest_framework_nested import routers
-from .views import OrganizationRequestViewSet, OrganizationViewSet, OrganizationChatViewSet
+from .views import (
+    OrganizationRequestViewSet,
+    OrganizationViewSet,
+    OrganizationChatViewSet,
+)
 
 router = routers.DefaultRouter()
 router.register(
@@ -10,8 +14,12 @@ router.register(
 )
 router.register(r"organizations", OrganizationViewSet, basename="organizations")
 
-organizationRouter = routers.NestedDefaultRouter(router, r"organizations", lookup="organization")
-organizationRouter.register(r"chats", OrganizationChatViewSet, basename="organization-chats")
+organizationRouter = routers.NestedDefaultRouter(
+    router, r"organizations", lookup="organization"
+)
+organizationRouter.register(
+    r"chats", OrganizationChatViewSet, basename="organization-chats"
+)
 
 urlpatterns = [
     path("", include(router.urls)),
