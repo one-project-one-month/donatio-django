@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -11,7 +12,8 @@ from .serializers import (
     CreateOrganizationRequestSerializer,
     UpdateOrganizationRequestSerializer,
 )
-from .permissions import IsAdminOrOrgAdmin
+from .permissions import IsAdminOrOrgAdmin, IsOrgAdmin
+from .constants import OrganizationRequestStatus
 from rest_framework.parsers import MultiPartParser, FormParser
 from attachments.models import Attachment
 
@@ -49,7 +51,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all().order_by("-created_at")
     serializer_class = OrganizationSerializer
     permission_classes = [IsAuthenticated, IsAdminOrOrgAdmin]
-    http_method_names = ["get", "put", "patch", "delete"]
+    # pagination_class = CommonPagination
+    http_method_names = ['get', 'put', 'patch', 'delete']
 
     filter_backends = [
         DjangoFilterBackend,
@@ -69,3 +72,36 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 Attachment.objects.filter(organization=serializer.instance).delete()
 
         return super().perform_update(serializer)
+
+class OrganizationChatViewSet(viewsets.ModelViewSet):
+    serializer_class = ChatSerializer
+    permission_classes = [IsAuthenticated, IsOrgAdmin]
+    http_method_names = ['get', 'post']
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return [IsAuthenticated()]
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return Chat.objects.filter(organization=self.kwargs.get("organization_pk"))
+        return Chat.objects.all()
+    
+    def create(self, request, *args, **kwargs):
+        organization = get_object_or_404(Organization, id=self.kwargs.get('organization_pk'))
+        
+        # get or start new chat
+        chat, created = Chat.objects.get_or_create(
+            donor=request.user,
+            organization=organization,
+            defaults={
+                'created_at': timezone.now()
+            }
+        )
+        
+        return Response({ 
+            "created": created,
+            "chat_id": chat.id
+        }, status=status.HTTP_200_OK)
+      

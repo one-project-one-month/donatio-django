@@ -157,3 +157,19 @@ class OrganizationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number must be 8-10 digits")
 
         return value
+
+    def create(self, validated_data):
+        if "admin" not in validated_data and self.context["request"].user.is_staff:
+            validated_data["admin"] = self.context["request"].user
+        return super().create(validated_data)
+
+class SimpleOrganizationSerializer(serializers.ModelSerializer):
+    admin = UserSerializer(read_only=True)
+    attachments = serializers.SerializerMethodField(read_only=True)
+    
+    def get_attachments(self, obj):
+        return SimpleAttachmentSerializer(obj.attachments.all(), many=True).data
+    
+    class Meta:
+        model = Organization
+        fields = ["id", "admin", "name", "phone_number", "email", "attachments"]

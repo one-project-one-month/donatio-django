@@ -1,10 +1,13 @@
 from rest_framework import serializers
+
+from organizations.serializers import OrganizationSerializer, SimpleOrganizationSerializer
 from .models import Chat, ChatMessage
 from accounts.serializers import CustomUserDetailsSerializer
 
 
 class ChatSerializer(serializers.ModelSerializer):
     donor = CustomUserDetailsSerializer(read_only=True)
+    organization = SimpleOrganizationSerializer(read_only=True)
 
     class Meta:
         model = Chat

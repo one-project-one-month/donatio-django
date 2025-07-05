@@ -1,6 +1,7 @@
 import json
 from channels.consumer import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from datetime import datetime
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -26,18 +27,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         chat = await database_sync_to_async(Chat.objects.get)(id=room_name)
 
         if sender_type == SenderType.DONOR:
-            sender = await database_sync_to_async(User.objects.get)(id=sender_id)
+            donor = await database_sync_to_async(User.objects.get)(id=sender_id)
             organization = None
         else:
-            sender = None
             organization = await database_sync_to_async(Organization.objects.get)(
                 id=sender_id
             )
+            donor = None
 
         await database_sync_to_async(ChatMessage.objects.create)(
             chat=chat,
             sender=sender_type,
-            donor=sender if sender_type == SenderType.DONOR else None,
+            donor=donor,
             organization=organization,
             content=message,
         )
@@ -67,6 +68,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.send(
             text_data=json.dumps(
-                {"message": message, "sender_type": sender_type, "sender_id": sender_id}
+                {"message": message, "sender_type": sender_type, "sender_id": sender_id, "timestamp": datetime.now()}
             )
         )

@@ -46,3 +46,8 @@ class IsAdminOrOrgAdmin(permissions.BasePermission):
         if request.user and (request.user == obj.admin or request.user.is_staff):
             return True
         return False
+    
+class IsOrgAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        organization = request.kwargs.get("organization_id")
+        return Organization.objects.get(id=organization).admin == request.user

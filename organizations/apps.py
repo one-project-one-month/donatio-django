@@ -6,4 +6,4 @@ class OrganizationsConfig(AppConfig):
     name = "organizations"
 
     def ready(self):
-        pass
+        import organizations.signals
