@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from events.models import Event
 from events.serializers import EventSerializer
@@ -18,6 +20,9 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated, IsOrgAdmin]
     pagination_class = CommonPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['title']
+    filterset_fields = ['status']
     http_method_names = ['get', 'patch', 'post']
     
     def get_permissions(self):
