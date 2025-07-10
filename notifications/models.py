@@ -9,12 +9,14 @@ class Notification(BaseModel):
     receiver_content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
+        related_name="notifications_received"
     )
     receiver_object_id = models.UUIDField()
     receiver_object = GenericForeignKey("receiver_content_type", "receiver_object_id")
     source_content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
+        related_name="notifications_sent"
     )
     source_object_id = models.UUIDField()
     source_object = GenericForeignKey("source_content_type", "source_object_id")
