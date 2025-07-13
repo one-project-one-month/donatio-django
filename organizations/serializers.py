@@ -1,10 +1,12 @@
-from rest_framework import serializers
+from django.db.models import Sum
+from django.db import transaction
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 from .models import OrganizationRequest, Organization
 from .constants import OrganizationRequestStatus
 from attachments.serializers import SimpleAttachmentSerializer
 from attachments.models import Attachment
-from django.db import transaction
+from transactions.constants import TransactionType
 
 User = get_user_model()
 
@@ -84,6 +86,35 @@ class OrganizationRequestSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrganizationStatsSerializer(serializers.ModelSerializer):
+    total_received_money = serializers.SerializerMethodField(read_only=True)
+    total_expense = serializers.SerializerMethodField(read_only=True)
+    total_current_balance = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = Organization
+        fields = ["total_received_money", "total_expense", "total_current_balance"]
+
+    def get_total_received_money(self, obj):
+        return (
+            obj.transactions.filter(type=TransactionType.DONATION)
+            .aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+
+    def get_total_expense(self, obj):
+        return (
+            obj.transactions.filter(type=TransactionType.DISBURSEMENT)
+            .aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+
+    def get_total_current_balance(self, obj):
+        total_received = self.get_total_received_money(obj)
+        total_expense = self.get_total_expense(obj)
+        return total_received - total_expense
+
+
 class OrganizationSerializer(serializers.ModelSerializer):
     admin = UserSerializer(read_only=True)
     attachments = serializers.SerializerMethodField(read_only=True)
@@ -94,7 +125,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
     organization_request = OrganizationRequestSerializer(read_only=True)
-
+    stats = serializers.SerializerMethodField(read_only=True)
+    
+    def get_stats(self, obj):
+        return OrganizationStatsSerializer(obj).data
+    
     def get_attachments(self, obj):
         return SimpleAttachmentSerializer(obj.attachments.all(), many=True).data
 
@@ -115,8 +150,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "updated_at",
             "attachments",
             "uploaded_attachments",
+            "stats"
         ]
-        read_only_fields = ["name", "type", "created_at", "updated_at"]
+        read_only_fields = ["name", "type", "created_at", "updated_at", "stats"]
 
     def update(self, instance, validated_data):
         attachments_data = validated_data.pop("uploaded_attachments", [])

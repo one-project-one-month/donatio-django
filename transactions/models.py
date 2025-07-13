@@ -8,9 +8,9 @@ from django.core.validators import MinValueValidator
 
 
 class Transaction(BaseModel, AttachableModel):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    donor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="transactions")
+    donor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transactions")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True, related_name="transactions")
     title = models.CharField(max_length=100)
     amount = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
