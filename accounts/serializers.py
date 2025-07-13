@@ -2,6 +2,7 @@ from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from dj_rest_auth.serializers import UserDetailsSerializer
 from rest_framework import serializers
 from .models import Profile
+from organizations.models import Organization
 
 
 class GoogleLoginSerializer(SocialLoginSerializer):
@@ -28,7 +29,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class CustomUserDetailsSerializer(UserDetailsSerializer):
     profile = ProfileSerializer(read_only=True)
-
+    is_org_admin = serializers.SerializerMethodField(read_only=True)
+    
     class Meta(UserDetailsSerializer.Meta):
-        fields = ["id", "username", "email", "is_staff", "profile", "joined_at"]
-        read_only_fields = ["is_staff"]
+        fields = ["id", "username", "email", "is_staff", "is_superuser", "profile", "joined_at", "is_org_admin"]
+        read_only_fields = ["is_staff", "is_superuser", "is_org_admin"]
+    
+    # True if user is an admin of one or many organizations
+    def get_is_org_admin(self, obj):
+        return Organization.objects.filter(admin=obj).exists()
