@@ -3,6 +3,7 @@ from dj_rest_auth.serializers import UserDetailsSerializer
 from rest_framework import serializers
 from .models import Profile
 
+
 class GoogleLoginSerializer(SocialLoginSerializer):
     def validate(self, attrs):
         # Use id_token as access_token if needed

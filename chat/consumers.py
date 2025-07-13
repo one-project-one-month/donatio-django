@@ -11,7 +11,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             await self.close(code=401)
             return
-        
+
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"chat_{self.room_name}"
 

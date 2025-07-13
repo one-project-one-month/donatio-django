@@ -1,4 +1,3 @@
-from django.urls import path
 from .views import EventListViewSet
 from rest_framework_nested import routers
 

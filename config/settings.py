@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     "chat",
     "transactions",
     "events",
-    "activities"
+    "activities",
 ]
 
 ASGI_APPLICATION = "config.asgi.application"

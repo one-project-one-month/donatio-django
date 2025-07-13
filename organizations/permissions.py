@@ -1,6 +1,7 @@
 from rest_framework import permissions
 from organizations.models import Organization
 
+
 class IsAdminOrSubmittedBy(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS and request.user.is_authenticated:
@@ -37,7 +38,7 @@ class IsAdminOrOrgAdmin(permissions.BasePermission):
 
         if request.user and request.user.is_staff:
             return True
-            
+
         return False
 
     def has_object_permission(self, request, view, obj):

@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('transactions', '0002_alter_transaction_amount'),
+        ("transactions", "0002_alter_transaction_amount"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='transaction',
-            name='title',
-            field=models.CharField(default='', max_length=100),
+            model_name="transaction",
+            name="title",
+            field=models.CharField(default="", max_length=100),
             preserve_default=False,
         ),
     ]

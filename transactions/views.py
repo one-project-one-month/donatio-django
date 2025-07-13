@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from core.permissions import IsOrgAdmin
 from rest_framework.views import APIView
 
+
 class TransactionViewSet(viewsets.ModelViewSet):
     queryset = (
         Transaction.objects.all()
@@ -20,12 +21,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
     )
     serializer_class = TransactionSerializer
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['title']
-    filterset_fields = ['type', 'status', 'event', 'review_required']
+    search_fields = ["title"]
+    filterset_fields = ["type", "status", "event", "review_required"]
     ordering_fields = ["created_at", "updated_at"]
     ordering = ["-created_at"]
     permission_classes = [IsAuthenticated]
-    
+
     def get_permissions(self):
         # To read or update or delete, user must be org admin
         if self.action in ["list", "retrieve", "update", "partial_update", "destroy"]:
@@ -50,7 +51,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         organization_pk = self.kwargs.get("organization_id")
         organization = get_object_or_404(Organization, pk=organization_pk)
-        
+
         serializer.save(
             organization=organization,
             donor=self.request.user,
@@ -65,12 +66,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 "Cannot delete approved or rejected transaction"
             )
         return super().destroy(instance)
-    
+
+
 class TransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        transactions = Transaction.objects.filter(donor=request.user, type=TransactionType.DONATION)
+        transactions = Transaction.objects.filter(
+            donor=request.user, type=TransactionType.DONATION
+        )
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
-           

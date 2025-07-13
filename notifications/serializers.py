@@ -14,15 +14,15 @@ class NotificationReadSerializer(serializers.ModelSerializer):
             "message",
             "type",
             "is_read",
-            "source_object"
+            "source_object",
         ]
-        
+
     source_object = serializers.SerializerMethodField()
-    
+
     def get_source_object(self, obj):
         if not obj.source_object:
             return None
-        
+
         if isinstance(obj.source_object, Organization):
             return {
                 "type": "organization",
@@ -35,5 +35,5 @@ class NotificationReadSerializer(serializers.ModelSerializer):
                 "id": str(obj.source_object.pk),
                 "username": obj.source_object.username,
             }
-            
+
         return str(obj.source_object)
