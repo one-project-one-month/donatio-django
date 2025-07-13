@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from .models import Transaction
 from .serializers import TransactionSerializer, UpdateTransactionSerializer
-from .constants import TransactionStatus
+from .constants import TransactionStatus, TransactionType
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from organizations.models import Organization
@@ -36,6 +36,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         organization_pk = self.kwargs.get("organization_id")
         organization = get_object_or_404(Organization, pk=organization_pk)
+        
         serializer.save(
             organization=organization,
             donor=self.request.user,

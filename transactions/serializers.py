@@ -20,6 +20,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "organization",
             "donor",
             "event",
+            "title",
             "amount",
             "type",
             "status",
@@ -55,6 +56,17 @@ class TransactionSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError("Invalid transaction type")
         return transaction
+    
+    def validate(self, attrs):
+        # If the transaction is a disbursement and the event is not None, raise an error
+        if (attrs["type"] == TransactionType.DISBURSEMENT) and (attrs["event"] is not None):
+            raise serializers.ValidationError("Disbursement transaction cannot be associated with an event")
+        
+        # If the transaction is a donation and the title is not set, set the title to the donor's username and the amount
+        if (attrs["type"] == TransactionType.DONATION) and (attrs["title"] is None):
+            attrs["title"] = f"{attrs['donor'].username} donated {attrs['amount']}"
+        
+        return super().validate(attrs)
 
 
 class UpdateTransactionSerializer(serializers.ModelSerializer):
@@ -72,6 +84,7 @@ class UpdateTransactionSerializer(serializers.ModelSerializer):
             "organization",
             "donor",
             "event",
+            "title",
             "amount",
             "type",
             "status",
