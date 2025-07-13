@@ -12,7 +12,7 @@ from events.models import Event
 from events.serializers import EventSerializer
 from events.constants import EventStatusChoices
 from organizations.models import Organization
-from .permissions import IsOrgAdmin
+from core.permissions import IsOrgAdmin
 from organizations.paginations import CommonPagination
 
 class EventViewSet(viewsets.ModelViewSet):
