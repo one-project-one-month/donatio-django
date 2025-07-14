@@ -16,7 +16,6 @@ class Activity(BaseModel, AttachableModel):
     location = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    attachments = GenericRelation('attachments.Attachment', related_query_name='activity')
 
     class Meta:
         verbose_name = "Activity"
@@ -26,7 +25,7 @@ class Activity(BaseModel, AttachableModel):
     def __str__(self):
         return self.title
 
-class ActivityTransaction(models.Model):
+class ActivityTransaction(BaseModel):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE, related_name='transaction_links')
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='activity_links')
     linked_at = models.DateTimeField(auto_now_add=True)

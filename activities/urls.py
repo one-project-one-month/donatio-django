@@ -1,3 +1,7 @@
-from django.urls import path
+from rest_framework_nested import routers
+from .views import ActivityListViewSet
 
-urlpatterns = []
+router = routers.DefaultRouter()
+router.register(r"activities", ActivityListViewSet, basename="activities")
+
+urlpatterns = router.urls

@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from django.db import transaction as db_transaction
+from django.db import transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
 
 from organizations.serializers import  SimpleOrganizationSerializer
 from attachments.serializers import SimpleAttachmentSerializer
@@ -10,8 +11,6 @@ from .models import Activity, ActivityTransaction
 from organizations.models import Organization
 from transactions.models import Transaction
 from attachments.models import Attachment
-from .services import create_activity, edit_activity
- 
 
 class ActivityTransactionSerializer(serializers.ModelSerializer):
     transaction = TransactionSerializer(read_only=True)
@@ -26,6 +25,12 @@ class ActivityDetailSerializer(serializers.ModelSerializer):
     organization = SimpleOrganizationSerializer(read_only=True)
     activity_transactions = ActivityTransactionSerializer(source='transaction_links', many=True, read_only=True)
     attachments = SimpleAttachmentSerializer(many=True, read_only=True)
+    transaction_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        default=[]
+    )
 
     class Meta:
         model = Activity
@@ -38,91 +43,126 @@ class ActivityDetailSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
             'activity_transactions',
-            'attachments'
+            'attachments',
+            'transaction_ids'
         ]
         read_only_fields = ['created_at', 'updated_at', 'activity_transactions', 'attachments', 'organization']
-
-
-class ActivityCreateSerializer(serializers.ModelSerializer):
-    disbursement_transaction_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=True
-    )
-    uploaded_files = serializers.ListField(
-        child=serializers.FileField(),
-        write_only=True,
-        required=False
-    )
-
-    class Meta:
-        model = Activity
-        fields = [
-            'title', 'description', 'location',
-            'disbursement_transaction_ids', 'uploaded_files'
-        ]
-
+        
+    def validate_transaction_ids(self, value):
+        # Check for duplicate transaction IDs
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError("Duplicate transaction IDs are not allowed.")
+            
+        return value
+        
     def create(self, validated_data):
-        organization = self.context['request'].user.organization 
-        title = validated_data['title']
-        description = validated_data.get('description')
-        location = validated_data.get('location')
-        disbursement_transaction_ids = validated_data.get('disbursement_transaction_ids', [])
-        uploaded_files = validated_data.get('uploaded_files', [])
-
-        try:
-            activity = create_activity(
-                org_admin_organization=organization,
-                title=title,
-                description=description,
-                location=location,
-                disbursement_transaction_ids=disbursement_transaction_ids,
-                uploaded_files=uploaded_files
-            )
+        transaction_ids = validated_data.pop('transaction_ids', [])
+        attachments = validated_data.pop("uploaded_attachments", [])
+        organization = get_object_or_404(Organization, id=self.context['view'].kwargs['organization_pk'])
+        
+        with transaction.atomic():
+            # Create the activity
+            activity = Activity.objects.create(**validated_data)
+            
+            # Process transactions
+            if transaction_ids:
+                # Get all valid transactions
+                transactions = Transaction.objects.filter(
+                    id__in=transaction_ids,
+                    organization=organization,
+                    type='disbursement'
+                )
+                
+                # Check for invalid transactions
+                valid_ids = set(transactions.values_list('id', flat=True))
+                invalid_ids = set(transaction_ids) - valid_ids
+                
+                if invalid_ids:
+                    raise serializers.ValidationError({
+                        'transaction_ids': f"Invalid or non-disbursement transactions: {', '.join(map(str, invalid_ids))}"
+                    })
+                
+                # Check for already linked transactions
+                linked_transactions = ActivityTransaction.objects.filter(
+                    transaction__id__in=valid_ids
+                ).values_list('transaction__id', flat=True)
+                
+                if linked_transactions:
+                    raise serializers.ValidationError({
+                        'transaction_ids': f"Transactions already linked to other activities: {', '.join(map(str, linked_transactions))}"
+                    })
+                
+                # Create activity transactions
+                activity_transactions = [
+                    ActivityTransaction(activity=activity, transaction=trans)
+                    for trans in transactions
+                ]
+                ActivityTransaction.objects.bulk_create(activity_transactions)
+            
+            # Handle attachments
+            for attachment in attachments:
+                Attachment.objects.create(content_object=activity, file=attachment)
+            
             return activity
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(detail=e.message)
-
-
-class ActivityEditSerializers(serializers.ModelSerializer):
-    new_disbursement_transaction_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False,
-        allow_empty=True 
-    )
-
-    class Meta:
-        model = Activity
-        fields = ['title', 'description', 'location', 'new_disbursement_transaction_ids']
-        extra_kwargs = {
-            'title': {'required': False}, 
-            'description': {'required': False},
-            'location': {'required': False},
-        }
-
+            
     def update(self, instance, validated_data):
-        user = self.context['request'].user
-        title = validated_data.pop('title', None)
-        description = validated_data.pop('description', None)
-        location = validated_data.pop('location', None)
-        new_disbursement_transaction_ids = validated_data.pop('new_disbursement_transaction_ids', None)
-
-        try:
-            updated_activity = edit_activity(
-                org_admin_user=user,
-                activity_id=instance.id,
-                title=title,
-                description=description,
-                location=location,
-                new_transaction_ids=new_disbursement_transaction_ids
-            )
-            return updated_activity
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(detail=e.message_dict if hasattr(e, 'message_dict') else e.message)
-        except PermissionDenied as e:
-            raise serializers.ValidationError(detail=str(e), code='permission_denied')
-        except Activity.DoesNotExist:
-            raise serializers.ValidationError(detail="Activity not found.", code='not_found')
-        except Exception as e:
-            raise serializers.ValidationError(detail=f"An unexpected error occurred during activity update: {str(e)}", code='internal_server_error')
+        transaction_ids = validated_data.pop('transaction_ids', None)
+        
+        with transaction.atomic():
+            # Update the activity fields
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            
+            # Process transactions if provided
+            if transaction_ids is not None:
+                # Get current transaction links
+                current_links = instance.transaction_links.all()
+                current_ids = set(str(link.transaction_id) for link in current_links)
+                new_ids = set(str(tid) for tid in transaction_ids)
+                
+                # Find transactions to add and remove
+                ids_to_remove = current_ids - new_ids
+                ids_to_add = new_ids - current_ids
+                
+                # Remove unlinked transactions
+                if ids_to_remove:
+                    instance.transaction_links.filter(transaction_id__in=ids_to_remove).delete()
+                
+                # Add new transactions
+                if ids_to_add:
+                    # Get all valid transactions
+                    organization = instance.organization
+                    transactions = Transaction.objects.filter(
+                        id__in=ids_to_add,
+                        organization=organization,
+                        type='disbursement'
+                    )
+                    
+                    # Check for invalid transactions
+                    valid_ids = set(str(t.id) for t in transactions)
+                    invalid_ids = ids_to_add - valid_ids
+                    
+                    if invalid_ids:
+                        raise serializers.ValidationError({
+                            'transaction_ids': f"Invalid or non-disbursement transactions: {', '.join(invalid_ids)}"
+                        })
+                    
+                    # Check for transactions already linked to other activities
+                    linked_transactions = ActivityTransaction.objects.filter(
+                        transaction_id__in=valid_ids
+                    ).exclude(activity=instance).values_list('transaction_id', flat=True)
+                    
+                    if linked_transactions:
+                        raise serializers.ValidationError({
+                            'transaction_ids': f"Transactions already linked to other activities: {', '.join(str(tid) for tid in linked_transactions)}"
+                        })
+                    
+                    # Create new activity transactions
+                    activity_transactions = [
+                        ActivityTransaction(activity=instance, transaction=trans)
+                        for trans in transactions
+                    ]
+                    ActivityTransaction.objects.bulk_create(activity_transactions)
+            
+            return instance

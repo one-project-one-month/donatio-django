@@ -22,3 +22,4 @@ class EventSerializer(serializers.ModelSerializer):
                 Attachment.objects.create(content_object=event, file=attachment)
             
             return event
+        
