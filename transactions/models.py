@@ -9,7 +9,7 @@ from django.core.validators import MinValueValidator
 
 class Transaction(BaseModel, AttachableModel):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="transactions")
-    donor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transactions")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transactions")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True, related_name="transactions")
     title = models.CharField(max_length=100, null=True, blank=True)
     amount = models.DecimalField(
@@ -29,4 +29,4 @@ class Transaction(BaseModel, AttachableModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.donor.username} {self.amount} {self.type} {self.status} {self.created_at}"
+        return f"{self.actor.username} {self.amount} {self.type} {self.status} {self.created_at}"

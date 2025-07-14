@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 class TransactionViewSet(viewsets.ModelViewSet):
     queryset = (
         Transaction.objects.all()
-        .select_related("organization", "donor", "event")
+        .select_related("organization", "actor", "event")
         .prefetch_related("attachments")
     )
     serializer_class = TransactionSerializer
@@ -41,7 +41,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         
-        context["donor"] = self.request.user
+        context["actor"] = self.request.user
         
         organization_pk = self.kwargs.get("organization_id")
         self.organization = get_object_or_404(Organization, pk=organization_pk)
@@ -65,7 +65,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             
         serializer.save(
             organization=self.organization,
-            donor=self.request.user,
+            actor=self.request.user,
         )
 
     def perform_destroy(self, instance):
@@ -84,7 +84,7 @@ class TransactionHistoryView(APIView):
 
     def get(self, request):
         transactions = Transaction.objects.filter(
-            donor=request.user, type=TransactionType.DONATION
+            actor=request.user, type=TransactionType.DONATION
         )
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
