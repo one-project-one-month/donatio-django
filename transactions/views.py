@@ -25,12 +25,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
     filterset_fields = ["type", "status", "event", "review_required"]
     ordering_fields = ["created_at", "updated_at"]
     ordering = ["-created_at"]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOrgAdmin]
 
     def get_permissions(self):
-        # To read or update or delete, user must be org admin
-        if self.action in ["list", "retrieve", "update", "partial_update", "destroy"]:
-            return [IsAuthenticated(), IsOrgAdmin()]
         # To create user can be org admin or donor
         if self.action in ["create"]:
             return [IsAuthenticated()]
@@ -40,20 +37,34 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if self.action in ["update", "partial_update"]:
             return UpdateTransactionSerializer
         return TransactionSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        
+        context["donor"] = self.request.user
+        
+        organization_pk = self.kwargs.get("organization_id")
+        self.organization = get_object_or_404(Organization, pk=organization_pk)
+        context["organization"] = self.organization
+        
+        return context
 
     def get_queryset(self):
         # Get the organization from the URL
         organization_pk = self.kwargs.get("organization_id")
-        if organization_pk:
-            return self.queryset.filter(organization__pk=organization_pk)
-        return self.queryset
+        return self.queryset.filter(organization__pk=organization_pk)
 
     def perform_create(self, serializer):
-        organization_pk = self.kwargs.get("organization_id")
-        organization = get_object_or_404(Organization, pk=organization_pk)
-
+        
+        # Access validated data safely
+        transaction_type = serializer.validated_data.get("type")
+        amount = serializer.validated_data.get("amount")
+        # Auto-set title if donation and no title provided
+        if transaction_type == TransactionType.DONATION:
+            serializer.validated_data["title"] = f"{self.request.user.username} donated {amount}"
+            
         serializer.save(
-            organization=organization,
+            organization=self.organization,
             donor=self.request.user,
         )
 
