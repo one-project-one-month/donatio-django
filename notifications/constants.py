@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class NotificationType(models.TextChoices):
     FAILURE = "failure", "Failure"
     SUCCESS = "success", "Success"

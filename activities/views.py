@@ -1,10 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.filters import SearchFilter
 
 from activities.models import Activity
@@ -24,7 +21,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return [IsAuthenticated()]
         return super().get_permissions()
-    
+
     def get_queryset(self):
         if self.action == "list":
             return Activity.objects.filter(organization=self.kwargs.get("organization_pk"))

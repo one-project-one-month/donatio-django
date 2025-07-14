@@ -2,6 +2,7 @@ from django.db import models
 from uuid import uuid4
 from .constants import SenderType
 
+
 class Chat(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     donor = models.ForeignKey(
@@ -16,6 +17,7 @@ class Chat(models.Model):
 
     class Meta:
         unique_together = ("donor", "organization")
+
 
 class ChatMessage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
