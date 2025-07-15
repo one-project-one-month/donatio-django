@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "django_filters",
     "django_cleanup.apps.CleanupConfig",
     # My Apps
+    "core",
     "accounts.apps.AccountsConfig",
     "attachments",
     "organizations",

@@ -98,7 +98,10 @@ class ActivityDetailSerializer(serializers.ModelSerializer):
                     for trans in transactions
                 ]
                 ActivityTransaction.objects.bulk_create(activity_transactions)
-            
+            else:
+                raise serializers.ValidationError({
+                    'transaction_ids': 'At least one transaction must be linked.'
+                })
             # Handle attachments
             for attachment in attachments:
                 Attachment.objects.create(content_object=activity, file=attachment)
