@@ -53,7 +53,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all().order_by("-created_at")
     serializer_class = OrganizationSerializer
     permission_classes = [IsAuthenticated, IsAdminOrOrgAdmin]
-    # pagination_class = CommonPagination
     http_method_names = ["get", "put", "patch", "delete"]
 
     filter_backends = [

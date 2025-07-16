@@ -10,14 +10,12 @@ from events.serializers import EventSerializer
 from events.constants import EventStatusChoices
 from organizations.models import Organization
 from core.permissions import IsOrgAdmin
-from organizations.paginations import CommonPagination
 
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated, IsOrgAdmin]
-    pagination_class = CommonPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["title"]
     filterset_fields = ["status"]
@@ -43,7 +41,6 @@ class EventViewSet(viewsets.ModelViewSet):
 class EventListViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = CommonPagination
     http_method_names = ["get"]
 
     def get_queryset(self):
