@@ -5,7 +5,7 @@ from .constants import TransactionStatus, TransactionType
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from organizations.models import Organization
-from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -70,14 +70,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         if (
-            instance.status == TransactionStatus.APPROVED
-            or instance.status == TransactionStatus.REJECTED
+            instance.type == TransactionType.DONATION
+            or instance.status in [TransactionStatus.APPROVED, TransactionStatus.REJECTED]
         ):
-            raise serializers.ValidationError(
-                "Cannot delete approved or rejected transaction"
-            )
-        return super().destroy(instance)
+            raise ValidationError("Cannot delete approved or rejected transaction")
 
+        instance.delete()
 
 class TransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
