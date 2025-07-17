@@ -204,12 +204,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class SimpleOrganizationSerializer(serializers.ModelSerializer):
-    admin = UserSerializer(read_only=True)
-    attachments = serializers.SerializerMethodField(read_only=True)
-
-    def get_attachments(self, obj):
-        return SimpleAttachmentSerializer(obj.attachments.all(), many=True).data
 
     class Meta:
         model = Organization
-        fields = ["id", "admin", "name", "phone_number", "email", "attachments"]
+        fields = ["id", "admin", "name"]

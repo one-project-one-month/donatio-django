@@ -33,3 +33,13 @@ class EventSerializer(serializers.ModelSerializer):
                 Attachment.objects.create(content_object=event, file=attachment)
 
             return event
+        
+class SimpleEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "organization",
+            "title",
+            "status",
+        ]

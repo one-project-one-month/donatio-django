@@ -1,7 +1,7 @@
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from dj_rest_auth.serializers import UserDetailsSerializer
 from rest_framework import serializers
-from .models import Profile
+from .models import Profile, User
 from organizations.models import Organization
 
 
@@ -25,6 +25,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         if attachment and attachment.file:
             return attachment.file.url
         return None
+    
+class SimpleProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["id", "full_name"]
 
 
 class CustomUserDetailsSerializer(UserDetailsSerializer):
@@ -38,3 +43,10 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
     # True if user is an admin of one or many organizations
     def get_is_org_admin(self, obj):
         return Organization.objects.filter(admin=obj).exists()
+    
+#Simple User Serializer
+class SimpleUserSerializer(serializers.ModelSerializer):
+    profile = SimpleProfileSerializer(read_only=True)
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "profile"]

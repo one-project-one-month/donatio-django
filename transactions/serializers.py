@@ -3,6 +3,9 @@ from .models import Transaction
 from attachments.serializers import SimpleAttachmentSerializer
 from django.db import transaction as db_transaction
 from .constants import TransactionType, TransactionStatus
+from organizations.serializers import SimpleOrganizationSerializer
+from accounts.serializers import SimpleUserSerializer
+from events.serializers import SimpleEventSerializer
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -12,6 +15,9 @@ class TransactionSerializer(serializers.ModelSerializer):
         required=True,
     )
     attachments = SimpleAttachmentSerializer(many=True, read_only=True)
+    organization = SimpleOrganizationSerializer(read_only=True)
+    actor = SimpleUserSerializer(read_only=True)
+    event = SimpleEventSerializer(read_only=True)
 
     class Meta:
         model = Transaction
@@ -87,6 +93,9 @@ class UpdateTransactionSerializer(serializers.ModelSerializer):
         required=False,
     )
     attachments = SimpleAttachmentSerializer(many=True, read_only=True)
+    organization = SimpleOrganizationSerializer(read_only=True)
+    actor = SimpleUserSerializer(read_only=True)
+    event = SimpleEventSerializer(read_only=True)
 
     class Meta:
         model = Transaction
