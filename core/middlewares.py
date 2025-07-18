@@ -24,16 +24,14 @@ class JWTAuthMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        headers = dict(scope["headers"])
-        # All keys and values are bytes, not strings in this header dict
-        cookie_header = headers.get(b"cookie", "").decode("utf-8")
+        query_string = scope.get("query_string", b"").decode("utf-8")
         token = None
-        # Get "access_token" from cookie header
-        for part in cookie_header.split(";"):
-            if part.strip().startswith("access_token="):
-                # Split the part by "=" and strip both ends
-                # Then the second part or the last part which is the token
-                token = part.strip().split("=")[1]
+        #Extract the token from the query string
+        for param in query_string.split("&"):
+            if param.startswith("access_token="):
+                token = param.split("=")[1]
                 break
-        scope["user"] = await get_user_from_token(token) if token else AnonymousUser()
+            
+        scope["user"] = AnonymousUser() if token is None else await get_user_from_token(token)
+        
         return await self.app(scope, receive, send)
