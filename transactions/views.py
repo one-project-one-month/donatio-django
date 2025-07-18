@@ -11,6 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from core.permissions import IsOrgAdmin
 from rest_framework.views import APIView
+from .filters import TransactionFilter
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -22,7 +23,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["title"]
-    filterset_fields = ["type", "status", "event", "review_required"]
+    filterset_class = TransactionFilter
     ordering_fields = ["created_at", "updated_at"]
     ordering = ["-created_at"]
     permission_classes = [IsAuthenticated, IsOrgAdmin]
