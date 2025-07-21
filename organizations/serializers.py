@@ -166,8 +166,12 @@ class OrganizationSerializer(serializers.ModelSerializer):
             if attachments_data:
                 # Delete old attachments
                 instance.attachments.all().delete()
-                # Get the first attachment and link it to the organization
-                instance.attachments.create(file=attachments_data[0])
+                # Loop for first 2 attachments
+                for file in attachments_data[:2]:
+                    if file:
+                        Attachment.objects.create(
+                            content_object=instance, file=file
+                        )
 
             instance.save()
 
