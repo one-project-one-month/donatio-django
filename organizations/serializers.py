@@ -1,12 +1,12 @@
 from django.db.models import Sum
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework import serializers, status
 from .models import OrganizationRequest, Organization
 from .constants import OrganizationRequestStatus
 from attachments.serializers import SimpleAttachmentSerializer
 from attachments.models import Attachment
-from transactions.constants import TransactionType
+from transactions.constants import TransactionType, TransactionStatus
 from .utils import extract_qr_url
 
 User = get_user_model()
@@ -127,12 +127,20 @@ class OrganizationSerializer(serializers.ModelSerializer):
     )
     organization_request = OrganizationRequestSerializer(read_only=True)
     stats = serializers.SerializerMethodField(read_only=True)
+    total_donations = serializers.SerializerMethodField(read_only=True)
+    total_donors = serializers.SerializerMethodField(read_only=True)
     
     def get_stats(self, obj):
         return OrganizationStatsSerializer(obj).data
     
     def get_attachments(self, obj):
         return SimpleAttachmentSerializer(obj.attachments.all(), many=True).data
+
+    def get_total_donors(self, obj):
+        return obj.transactions.filter(type=TransactionType.DONATION, status=TransactionStatus.APPROVED).values("actor").distinct().count()
+    
+    def get_total_donations(self, obj):
+        return obj.transactions.filter(type=TransactionType.DONATION, status=TransactionStatus.APPROVED).count()
 
     class Meta:
         model = Organization
@@ -152,7 +160,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "attachments",
             "kpay_qr_image",
             "uploaded_attachments",
-            "stats"
+            "stats",
+            "total_donations",
+            "total_donors",
         ]
         read_only_fields = ["name", "type", "created_at", "updated_at", "stats", "kpay_qr_url"]
 
